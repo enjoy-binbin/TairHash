@@ -3040,6 +3040,8 @@ int __attribute__((visibility("default"))) RedisModule_OnLoad(RedisModuleCtx *ct
         return REDISMODULE_ERR;
     }
 
+    RedisModule_Log(ctx, "warning", "before getting version");
+
     if (RedisModule_GetServerVersion) {
         int version = RedisModule_GetServerVersion();
         redis_patch_ver = version & 0x000000ff;
@@ -3054,11 +3056,17 @@ int __attribute__((visibility("default"))) RedisModule_OnLoad(RedisModuleCtx *ct
     }
 #endif
 
+    RedisModule_Log(ctx, "warning", "after getting version");
+
+
     g_expire_algorithm.enable_active_expire = 1;
     g_expire_algorithm.active_expire_period = TAIR_HASH_ACTIVE_EXPIRE_PERIOD;
     g_expire_algorithm.dbs_per_active_loop = TAIR_HASH_ACTIVE_DBS_PER_CALL;
     g_expire_algorithm.keys_per_active_loop = TAIR_HASH_ACTIVE_EXPIRE_KEYS_PER_LOOP;
     g_expire_algorithm.keys_per_passive_loop = TAIR_HASH_PASSIVE_EXPIRE_KEYS_PER_LOOP;
+
+
+    RedisModule_Log(ctx, "warning", "before arg");
 
     for (int ii = 0; ii < argc; ii += 2) {
         if (!mstrcasecmp(argv[ii], "enable_active_expire")) {
@@ -3102,6 +3110,9 @@ int __attribute__((visibility("default"))) RedisModule_OnLoad(RedisModuleCtx *ct
         }
     }
 
+    RedisModule_Log(ctx, "warning", "after arg");
+
+
     RedisModuleTypeMethods tm = {
         .version = REDISMODULE_TYPE_METHOD_VERSION,
         .rdb_load = TairHashTypeRdbLoad,
@@ -3120,13 +3131,22 @@ int __attribute__((visibility("default"))) RedisModule_OnLoad(RedisModuleCtx *ct
 #endif
     };
 
+    RedisModule_Log(ctx, "warning", "after tm");
+
+
     TairHashType = RedisModule_CreateDataType(ctx, "tairhash-", 0, &tm);
     if (TairHashType == NULL)
         return REDISMODULE_ERR;
 
+    RedisModule_Log(ctx, "warning", "after create data type");
+
+
     if (REDISMODULE_ERR == Module_CreateCommands(ctx)) {
         return REDISMODULE_ERR;
     }
+
+    RedisModule_Log(ctx, "warning", "after create command");
+
 
 #if defined(SORT_MODE) || defined(SLAB_MODE)
     for (int i = 0; i < DB_NUM; i++) {
@@ -3155,9 +3175,15 @@ int __attribute__((visibility("default"))) RedisModule_OnLoad(RedisModuleCtx *ct
          * in some old version redis `CreateTimer` will trigger a crash, see bugfix:
          * https://github.com/redis/redis/commit/096592506ef3f548a4a3484d5829e04749a24a99
          * https://github.com/redis/redis/commit/7b5f4b175b96dca2093dc1898c3df97e3e096526 */
+        RedisModule_Log(ctx, "warning", "1111");
+
         RedisModuleCtx *ctx2 = RedisModule_GetThreadSafeContext(NULL);
+        RedisModule_Log(ctx, "warning", "2222");
         startExpireTimer(ctx2, NULL);
         RedisModule_FreeThreadSafeContext(ctx2);
+        RedisModule_Log(ctx, "warning", "333");
     }
+    RedisModule_Log(ctx, "warning", "end");
+
     return REDISMODULE_OK;
 }
